@@ -7,6 +7,9 @@ import (
     tea "charm.land/bubbletea/v2"
 )
 
+var exit bool = false
+
+
 type model struct {
 	themes	[]string
 }
@@ -40,6 +43,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		
 		case "ctrl+c", "q":
+			exit = true
 			return m, tea.Quit
 		}
 	}
@@ -49,6 +53,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 func (m model) View() tea.View {
+	if exit {
+		return tea.NewView("Changed Vim theme to: [theme]\n")
+	}
+
 	s := "Vim Theme Roulette >:D\n\n"
 
 	for _, theme := range(m.themes) {
