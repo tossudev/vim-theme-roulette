@@ -3,15 +3,21 @@ package main
 import (
     "fmt"
 	"os"
+	"time"
 
     tea "charm.land/bubbletea/v2"
 )
 
 var exit bool = false
+var displaySize int = 25
+var speed int = 5
+var stopSpin = false
 
 
 type model struct {
-	themes	[]string
+	fullText string
+	displayText string
+	index int
 }
 
 
@@ -25,29 +31,43 @@ func main() {
 
 
 func initialModel() model {
-	return model{
-		themes:  []string{"gruvbox", "elflord", "industry", "morning"},
+	text := ""
+	themes := []string{"gruvbox", "elflord", "industry", "morning"}
+
+	for _, theme := range(themes) {
+		text += fmt.Sprintf("| %s |", theme)
+	}
+
+	return model {
+		fullText:	text,
+		index:		0,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-    return nil
+    return tick
 }
 
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
 
-    // Is it a key press?
     case tea.KeyPressMsg:
 		switch msg.String() {
 		
 		case "ctrl+c", "q":
 			exit = true
 			return m, tea.Quit
+
+		case "space", "enter":
+			stopSpin = true
 		}
+
+	case tickMsg:
+		m.UpdateRoulette()
+		return m, tick
 	}
-	
+
 	return m, nil
 }
 
@@ -59,14 +79,59 @@ func (m model) View() tea.View {
 
 	s := "Vim Theme Roulette >:D\n\n"
 
-	for _, theme := range(m.themes) {
-		s += fmt.Sprintf("  %s  ", theme)
+	s += m.displayText
+	s += "\n"
+	for range(displaySize/2) {
+		s += " "
 	}
+	s += "^"
 
-	s += "\n\nPress q to quit."
+	if speed <= 0 {
+		s += "\nPress q to accept your fate!"
+	} else {
+		s += "\nPress space or enter to stop spinning."
+	}
 
 	return tea.NewView(s)
 }
 
 
+func (m *model) UpdateRoulette() {
+	if speed <= 0 {
+		return
+	}
+
+	m.index += speed
+	m.displayText = ""
+	wrap := 0
+
+	if stopSpin {
+		speed -= 1
+	}
+
+	if m.index >= len(m.fullText) - 1 {
+		m.index = 0
+	}
+
+	for i := range(displaySize) {
+		index := m.index + i
+
+		if wrap > 0 {
+			index = i - wrap
+		}
+
+		if index >= len(m.fullText) - 1 {
+			wrap = i
+		}
+
+		m.displayText += string(rune(m.fullText[index]))
+	}
+}
+
+type tickMsg time.Time                                                                                                                                                                        
+                                                                                                                                                                                              
+func tick() tea.Msg {                                                                                                                                                                         
+    time.Sleep(time.Duration(50) * time.Millisecond)
+    return tickMsg(time.Now())
+} 
 
