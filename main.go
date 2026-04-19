@@ -12,7 +12,7 @@ var exit bool = false
 var displaySize int = 25
 var speed int = 5
 var stopSpin = false
-var rolledTheme string
+var RolledTheme string
 
 type model struct {
 	fullText string
@@ -24,6 +24,8 @@ type model struct {
 
 
 func main() {
+	GetThemesLocal()
+
     p := tea.NewProgram(initialModel())
     if _, err := p.Run(); err != nil {
         fmt.Printf("Alas, there's been an error: %v", err)
@@ -34,11 +36,10 @@ func main() {
 
 func initialModel() model {
 	text := ""
-	themes := []string{"gruvbox", "elflord", "industry", "morning", "delek", "desert"}
 	themeIndices := []int{}
 	totalLength := 0
 
-	for _, theme := range(themes) {
+	for _, theme := range(CachedThemes) {
 		themeLength := len(theme) + 4
 		themeIndices = append(themeIndices, themeLength + totalLength)
 		totalLength += themeLength
@@ -48,7 +49,7 @@ func initialModel() model {
 	return model {
 		fullText:		text,
 		index:			0,
-		themes:			themes,
+		themes:			CachedThemes,
 		themeIndices:	themeIndices,
 	}
 }
@@ -83,7 +84,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() tea.View {
 	if exit {
-		return tea.NewView("Changed Vim theme to: [theme]\n")
+		ChangeTheme()
+		return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", RolledTheme))
 	}
 
 	s := "Vim Theme Roulette >:D\n\n"
@@ -96,7 +98,7 @@ func (m model) View() tea.View {
 	s += "^\n"
 
 	if speed <= 0 {
-		s += fmt.Sprintf("You rolled %s!", rolledTheme)
+		s += fmt.Sprintf("You rolled %s!", RolledTheme)
 		s += "\nPress q to accept your fate!"
 	} else {
 		s += "\nPress space or enter to stop spinning."
@@ -108,14 +110,8 @@ func (m model) View() tea.View {
 
 func (m *model) UpdateRoulette() {
 	if speed <= 0 {
-		if rolledTheme == "" {
-			for i, v := range(m.themeIndices) {
-				if v > m.index + displaySize/2 {
-					rolledTheme = m.themes[i]
-					break
-				}
-				rolledTheme = m.themes[0]
-			}
+		if RolledTheme == "" {
+			m.GetTheme()
 		}
 
 		return
@@ -129,7 +125,7 @@ func (m *model) UpdateRoulette() {
 		speed -= 1
 	}
 
-	if m.index >= len(m.fullText) - 1 {
+	if m.index > len(m.fullText) {
 		m.index = 0
 	}
 
@@ -146,6 +142,16 @@ func (m *model) UpdateRoulette() {
 
 		m.displayText += string(rune(m.fullText[index]))
 	}
+}
+
+func (m *model) GetTheme() {
+	for i, v := range(m.themeIndices) {
+		if v > m.index + displaySize/2 {
+			RolledTheme = m.themes[i]
+			return
+		}
+	}
+	RolledTheme = m.themes[0]
 }
 
 
