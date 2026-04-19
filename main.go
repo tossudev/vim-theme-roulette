@@ -12,12 +12,14 @@ var exit bool = false
 var displaySize int = 25
 var speed int = 5
 var stopSpin = false
-
+var rolledTheme string
 
 type model struct {
 	fullText string
 	displayText string
 	index int
+	themes []string
+	themeIndices []int
 }
 
 
@@ -32,15 +34,22 @@ func main() {
 
 func initialModel() model {
 	text := ""
-	themes := []string{"gruvbox", "elflord", "industry", "morning"}
+	themes := []string{"gruvbox", "elflord", "industry", "morning", "delek", "desert"}
+	themeIndices := []int{}
+	totalLength := 0
 
 	for _, theme := range(themes) {
+		themeLength := len(theme) + 4
+		themeIndices = append(themeIndices, themeLength + totalLength)
+		totalLength += themeLength
 		text += fmt.Sprintf("| %s |", theme)
 	}
 
 	return model {
-		fullText:	text,
-		index:		0,
+		fullText:		text,
+		index:			0,
+		themes:			themes,
+		themeIndices:	themeIndices,
 	}
 }
 
@@ -84,9 +93,10 @@ func (m model) View() tea.View {
 	for range(displaySize/2) {
 		s += " "
 	}
-	s += "^"
+	s += "^\n"
 
 	if speed <= 0 {
+		s += fmt.Sprintf("You rolled %s!", rolledTheme)
 		s += "\nPress q to accept your fate!"
 	} else {
 		s += "\nPress space or enter to stop spinning."
@@ -98,6 +108,16 @@ func (m model) View() tea.View {
 
 func (m *model) UpdateRoulette() {
 	if speed <= 0 {
+		if rolledTheme == "" {
+			for i, v := range(m.themeIndices) {
+				if v > m.index + displaySize/2 {
+					rolledTheme = m.themes[i]
+					break
+				}
+				rolledTheme = m.themes[0]
+			}
+		}
+
 		return
 	}
 
@@ -128,8 +148,9 @@ func (m *model) UpdateRoulette() {
 	}
 }
 
-type tickMsg time.Time                                                                                                                                                                        
-                                                                                                                                                                                              
+
+type tickMsg time.Time
+
 func tick() tea.Msg {                                                                                                                                                                         
     time.Sleep(time.Duration(50) * time.Millisecond)
     return tickMsg(time.Now())
