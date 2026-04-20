@@ -10,7 +10,7 @@ import (
 
 var exit bool = false
 var displaySize int = 50
-var speed int = 5
+var speed int = 50
 var stopSpin = false
 var ColorReset string = "\033[0m"
 
@@ -119,7 +119,7 @@ func (m *model) UpdateRoulette() {
 		return
 	}
 
-	m.index += speed
+	m.index += (speed / 10)
 	m.displayText = ""
 	wrap := 0
 
@@ -160,7 +160,7 @@ func (m *model) GetTheme() {
 type tickMsg time.Time
 
 func tick() tea.Msg {                                                                                                                                                                         
-    time.Sleep(time.Duration(50) * time.Millisecond)
+    time.Sleep(time.Duration(16) * time.Millisecond)
     return tickMsg(time.Now())
 } 
 
