@@ -8,34 +8,36 @@ import (
 
 var (
 	VimRuntime string = "/usr/share/vim/"
-	CachedThemes []string
 	VimConfig string
 )
 
 
-func GetThemesLocal() {
+func GetThemesLocal(builtin bool) {
 	VimConfig = fmt.Sprintf("%s/.vimrc", os.Getenv("HOME"))
 
-	runtimePath := getRuntimePath()
-	if runtimePath == "" {
-		fmt.Println("ERR: Couldn't find VIMRUNTIME!")
+	var path string
+
+	if builtin {
+		path = getRuntimePath()
+	} else {
+		path = fmt.Sprintf("%s/.vim/colors", os.Getenv("HOME"))
+	}
+
+	if path == "" {
+		fmt.Println("ERR: Couldn't find themes path!")
 		return
 	}
 
-	c, err := os.ReadDir(runtimePath)
+	c, err := os.ReadDir(path)
 	if err != nil {
-		fmt.Println("ERR reading dir:", runtimePath, err)
+		fmt.Println("ERR reading dir:", path, err)
 	}
 
 	for _, entry := range c {
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".vim") {
 			AddTheme(entry.Name(), true)
-
-			//CachedThemes = append(CachedThemes, strings.TrimSuffix(entry.Name(), ".vim"))
 		}
 	}
-
-	//fmt.Println(Themes)
 }
 
 
@@ -57,7 +59,7 @@ func ChangeTheme() {
 	output := strings.Join(lines, "\n")
 	err = os.WriteFile(VimConfig, []byte(output), 0644)
 	if err != nil {
-		fmt.Println("ERR:", err)
+		fmt.Println("ERR writing to file:", VimConfig, err)
 	}
 }
 

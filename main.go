@@ -24,7 +24,9 @@ type model struct {
 
 
 func main() {
-	GetThemesLocal()
+	GetThemesLocal(true)
+	GetThemesLocal(false)
+	ShuffleThemes()
 
     p := tea.NewProgram(initialModel())
     if _, err := p.Run(); err != nil {

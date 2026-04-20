@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"math/rand"
 )
 
 type Theme struct {
@@ -22,4 +23,13 @@ func AddTheme(filename string, builtin bool) {
 	}
 
 	Themes = append(Themes, theme)
+}
+
+
+func ShuffleThemes() {
+	for i := range Themes {
+		j := rand.Intn(i + 1)
+		Themes[i], Themes[j] = Themes[j], Themes[i]
+
+	}
 }
