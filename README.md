@@ -8,6 +8,9 @@ Roll away for a new theme!
 - Remove hardcoded paths
 - Color code themes
 - Vim / Nvim compatibility
+- UI
+	- Ask which themes to use
+	- End screen: Accept, roll again or quit
 
 ### Extras
 - Themes from the internet

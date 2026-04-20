@@ -9,16 +9,16 @@ import (
 )
 
 var exit bool = false
-var displaySize int = 25
+var displaySize int = 50
 var speed int = 5
 var stopSpin = false
-var RolledTheme string
+var ColorReset string = "\033[0m"
 
 type model struct {
 	fullText string
 	displayText string
 	index int
-	themes []string
+	themes []Theme
 	themeIndices []int
 }
 
@@ -28,7 +28,7 @@ func main() {
 
     p := tea.NewProgram(initialModel())
     if _, err := p.Run(); err != nil {
-        fmt.Printf("Alas, there's been an error: %v", err)
+        fmt.Printf("ERR in main(): %v", err)
         os.Exit(1)
     }
 }
@@ -39,17 +39,17 @@ func initialModel() model {
 	themeIndices := []int{}
 	totalLength := 0
 
-	for _, theme := range(CachedThemes) {
-		themeLength := len(theme) + 4
+	for _, theme := range(Themes) {
+		themeLength := len(theme.name) + 4
 		themeIndices = append(themeIndices, themeLength + totalLength)
 		totalLength += themeLength
-		text += fmt.Sprintf("| %s |", theme)
+		text += fmt.Sprintf("| %s |", theme.name)
 	}
 
 	return model {
 		fullText:		text,
 		index:			0,
-		themes:			CachedThemes,
+		themes:			Themes,
 		themeIndices:	themeIndices,
 	}
 }
@@ -85,7 +85,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() tea.View {
 	if exit {
 		ChangeTheme()
-		return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", RolledTheme))
+		return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.name))
 	}
 
 	s := "Vim Theme Roulette >:D\n\n"
@@ -98,7 +98,7 @@ func (m model) View() tea.View {
 	s += "^\n"
 
 	if speed <= 0 {
-		s += fmt.Sprintf("You rolled %s!", RolledTheme)
+		s += fmt.Sprintf("You rolled %s!", CurrentTheme.name)
 		s += "\nPress q to accept your fate!"
 	} else {
 		s += "\nPress space or enter to stop spinning."
@@ -110,7 +110,7 @@ func (m model) View() tea.View {
 
 func (m *model) UpdateRoulette() {
 	if speed <= 0 {
-		if RolledTheme == "" {
+		if CurrentTheme.name == "" {
 			m.GetTheme()
 		}
 
@@ -147,11 +147,11 @@ func (m *model) UpdateRoulette() {
 func (m *model) GetTheme() {
 	for i, v := range(m.themeIndices) {
 		if v > m.index + displaySize/2 {
-			RolledTheme = m.themes[i]
+			CurrentTheme = m.themes[i]
 			return
 		}
 	}
-	RolledTheme = m.themes[0]
+	CurrentTheme = m.themes[0]
 }
 
 
