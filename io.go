@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"fmt"
 	"strings"
 )
@@ -65,18 +66,19 @@ func ChangeTheme() {
 
 
 func getRuntimePath() string {
-	runtimePath := VimRuntime
-	dirContents, err := os.ReadDir(VimRuntime)
+	cmd := exec.Command("bash",
+		"-c",
+		`vim -T dumb --cmd 'exe "set t_cm=\<C-M>"|echo $VIMRUNTIME|quit' | tr -d '\015'`,
+	)
+	
+	var out strings.Builder
+	cmd.Stdout = &out
+
+	err := cmd.Run()
 	if err != nil {
-		fmt.Println("ERR reading dir:", VimRuntime, err)
+		fmt.Println("Runtime path error:", err)
+		fmt.Println(err.Error())
 	}
 
-	for _, entry := range dirContents {
-		if entry.IsDir() && strings.HasPrefix(entry.Name(), "vim") {
-			runtimePath += fmt.Sprintf("%s/colors/", entry.Name())
-			return runtimePath
-		}
-	}
-
-	return ""
+	return strings.TrimSpace(out.String()) + "/colors/"
 }

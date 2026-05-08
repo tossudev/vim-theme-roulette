@@ -6,13 +6,20 @@ import (
 	"time"
 
     tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 var exit bool = false
 var displaySize int = 50
 var speed int = 50
 var stopSpin = false
-var ColorReset string = "\033[0m"
+
+const (
+	ColorReset string = "\033[0m"
+	ColorGreen string = "\u001B[32m"
+	ColorYellow string = "\u001B[33m"
+	ColorWhite string = "\u001B[37m"
+)
 
 type model struct {
 	fullText string
@@ -20,6 +27,9 @@ type model struct {
 	index int
 	themes []Theme
 	themeIndices []int
+
+	width int
+	height int
 }
 
 
@@ -78,6 +88,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		m.UpdateRoulette()
 		return m, tick
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 	}
 
 	return m, nil
@@ -85,28 +99,46 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 func (m model) View() tea.View {
+	width := m.width
+
 	if exit {
-		ChangeTheme()
-		return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.name))
+		if CurrentTheme.name != "" {
+			ChangeTheme()
+			return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.name))
+		}
+
+		return tea.NewView(fmt.Sprintf("Program exited by user"))
 	}
 
-	s := "Vim Theme Roulette >:D\n\n"
+	s := ColorGreen + "\n★ ☆ ★  Welcome to the Vim Theme Roulette!  ☆ ★ ☆ ★\n\n" + ColorReset
 
+	s += "░▒▓ "
 	s += m.displayText
+	s += " ▓▒░"
+	
+
 	s += "\n"
-	for range(displaySize/2) {
+	for range(m.width) {
 		s += " "
 	}
 	s += "^\n"
 
 	if speed <= 0 {
 		s += fmt.Sprintf("You rolled %s!", CurrentTheme.name)
-		s += "\nPress q to accept your fate!"
 	} else {
-		s += "\nPress space or enter to stop spinning."
+		s += "Press space or enter to stop spinning."
 	}
 
-	return tea.NewView(s)
+	s += "\nPress q to exit."
+	s += "\n"
+
+	centered := lipgloss.NewStyle().
+		Width(width).
+		Align(lipgloss.Center).
+		Foreground(lipgloss.Color("5")).
+		Render(s)
+
+	return tea.NewView(centered)
 }
 
 
