@@ -9,11 +9,6 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-var exit bool = false
-var displaySize int = 50
-var speed int = 50
-var stopSpin = false
-
 const (
 	ColorReset string = "\033[0m"
 	ColorGreen string = "\u001B[32m"
@@ -22,15 +17,26 @@ const (
 )
 
 type model struct {
-	fullText string
-	displayText string
-	index int
-	themes []Theme
-	themeIndices []int
+	Header string
+	BlockLeft string
+	BlockRight string
 
-	width int
-	height int
+	FullText string
+	DisplayText string
+	Index int
+	Themes []Theme
+	ThemeIndices []int
+
+	Width int
+	Height int
 }
+
+var (
+	exit bool = false
+	displaySize int = 50
+	speed int = 50
+	stopSpin = false
+)
 
 
 func main() {
@@ -58,10 +64,14 @@ func initialModel() model {
 	}
 
 	return model {
-		fullText:		text,
-		index:			0,
-		themes:			Config.Themes,
-		themeIndices:	themeIndices,
+		Header:			ColorGreen + "\n☆ ★ ☆ ★  Vim Theme Roulette  ☆ ★ ☆ ★\n\n" + ColorReset,
+		BlockLeft:		"░▒▓ ",
+		BlockRight:		" ▓▒░",
+
+		FullText:		text,
+		Index:			0,
+		Themes:			Config.Themes,
+		ThemeIndices:	themeIndices,
 	}
 }
 
@@ -89,8 +99,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tick
 
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+		m.Width = msg.Width
+		m.Height = msg.Height
 	}
 
 	return m, nil
@@ -98,7 +108,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 func (m model) View() tea.View {
-	width := m.width
+	width := m.Width
 
 	if exit {
 		if CurrentTheme.Name != "" {
@@ -109,15 +119,11 @@ func (m model) View() tea.View {
 		return tea.NewView(fmt.Sprintf("Program exited by user"))
 	}
 
-	s := ColorGreen + "\n★ ☆ ★  Welcome to the Vim Theme Roulette!  ☆ ★ ☆ ★\n\n" + ColorReset
-
-	s += "░▒▓ "
-	s += m.displayText
-	s += " ▓▒░"
-	
-
+	s := m.Header
+	s += m.BlockLeft + m.DisplayText + m.BlockRight
 	s += "\n"
-	for range(m.width) {
+	
+	for range(m.Width) {
 		s += " "
 	}
 	s += "^\n"
@@ -142,7 +148,7 @@ func (m model) View() tea.View {
 
 
 func (m *model) UpdateRoulette() {
-	if speed <= 0 {
+	if speed <= 0.0 {
 		if CurrentTheme.Name == "" {
 			m.GetTheme()
 		}
@@ -150,48 +156,48 @@ func (m *model) UpdateRoulette() {
 		return
 	}
 
-	m.index += (speed / 10)
-	m.displayText = ""
+	m.Index += speed / 10
+	m.DisplayText = ""
 	wrap := 0
 
 	if stopSpin {
 		speed -= 1
 	}
 
-	if m.index > len(m.fullText) {
-		m.index = 0
+	if m.Index > len(m.FullText) {
+		m.Index = 0
 	}
 
 	for i := range(displaySize) {
-		index := m.index + i
+		index := m.Index + i
 
 		if wrap > 0 {
 			index = i - wrap
 		}
 
-		if index >= len(m.fullText) - 1 {
+		if index >= len(m.FullText) - 1 {
 			wrap = i
 		}
 
-		m.displayText += string(rune(m.fullText[index]))
+		m.DisplayText += string(rune(m.FullText[index]))
 	}
 }
 
 func (m *model) GetTheme() {
-	for i, v := range(m.themeIndices) {
-		if v > m.index + displaySize/2 {
-			CurrentTheme = m.themes[i]
+	for i, v := range(m.ThemeIndices) {
+		if v > m.Index + displaySize/2 {
+			CurrentTheme = m.Themes[i]
 			return
 		}
 	}
-	CurrentTheme = m.themes[0]
+	CurrentTheme = m.Themes[0]
 }
 
 
 type tickMsg time.Time
 
-func tick() tea.Msg {                                                                                                                                                                         
-    time.Sleep(time.Duration(16) * time.Millisecond)
-    return tickMsg(time.Now())
-} 
+func tick() tea.Msg {
+	time.Sleep(time.Duration(16) * time.Millisecond)
+	return tickMsg(time.Now())
+}
 
