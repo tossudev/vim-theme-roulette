@@ -8,7 +8,7 @@ import (
 type Theme struct {
 	Name string
 	Color string
-	Builtin bool
+	Custom bool
 }
 
 var CurrentTheme Theme

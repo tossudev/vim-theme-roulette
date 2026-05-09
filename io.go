@@ -21,9 +21,11 @@ type ConfigFile struct {
 
 
 func FetchConfig() {
+	VimConfig = fmt.Sprintf("%s/.vimrc", os.Getenv("HOME"))
+	
 	_, err := os.Stat(ConfigPath)
 	if err != nil {
-		CreateConfig()
+		createConfig()
 		return
 	}
 
@@ -39,71 +41,9 @@ func FetchConfig() {
 	}
 	
 	Config = cfgFile
+	fmt.Println(Config)
 }
 
-
-func CreateConfig() {
-	cfg := ConfigFile{}
-	
-	cfg.Vimruntime = getRuntimePath()
-	cfg.Themes = getThemes()
-
-	cfgJson, err := json.Marshal(cfg)
-	if err != nil {
-		fmt.Println("JSON Marshal ERR:", err)
-	}
-	
-	err2 := os.WriteFile(ConfigPath, []byte(cfgJson), 0644)
-	if err2 != nil {
-		fmt.Println("ERR writing to file:", ConfigPath, err)
-	}
-
-	Config = cfg
-}
-
-
-func getThemes() []Theme {
-	VimConfig = fmt.Sprintf("%s/.vimrc", os.Getenv("HOME"))
-
-	var themes []Theme
-	var path string
-
-	// TODO: add both theme directories at same time
-	/*
-	if custom {
-		path = fmt.Sprintf("%s/.vim/colors", os.Getenv("HOME"))
-	} else {
-		path = getRuntimePath()
-	}
-	*/
-	path = fmt.Sprintf("%s/.vim/colors", os.Getenv("HOME"))
-
-	if path == "" {
-		fmt.Println("ERR: Couldn't find themes path!")
-		return []Theme{}
-	}
-
-	c, err := os.ReadDir(path)
-	if err != nil {
-		fmt.Println("ERR reading dir:", path, err)
-	}
-
-	for _, entry := range c {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".vim") {
-			themes = append(themes, FormatTheme(entry.Name(), true))
-		}
-	}
-	
-	return themes
-}
-
-func FormatTheme(filename string, builtin bool) Theme {
-	return Theme{
-		Name:		strings.TrimSuffix(filename, ".vim"),
-		Color:		"\033[32m",
-		Builtin:	builtin,
-	}
-}
 
 func ChangeTheme() {
 	contents, err := os.ReadFile(VimConfig)
@@ -124,6 +64,71 @@ func ChangeTheme() {
 	err = os.WriteFile(VimConfig, []byte(output), 0644)
 	if err != nil {
 		fmt.Println("ERR writing to file:", VimConfig, err)
+	}
+}
+
+
+func createConfig() {
+	cfg := ConfigFile{}
+	
+	cfg.Vimruntime = getRuntimePath()
+	cfg.Themes = getThemes(cfg.Vimruntime)
+
+	cfgJson, err := json.Marshal(cfg)
+	if err != nil {
+		fmt.Println("JSON Marshal ERR:", err)
+	}
+	
+	err2 := os.WriteFile(ConfigPath, []byte(cfgJson), 0644)
+	if err2 != nil {
+		fmt.Println("ERR writing to file:", ConfigPath, err)
+	}
+
+	Config = cfg
+}
+
+
+func getThemes(vimruntime string) []Theme {
+	var themes []Theme
+	var path string
+	var custom bool
+
+	// TODO:
+	// Make this look better lol
+	for i := range(2) {
+		if i == 0 {
+			custom = true
+			path = fmt.Sprintf("%s/.vim/colors", os.Getenv("HOME"))
+		} else {
+			if vimruntime == "" {
+				return themes
+			}
+
+			custom = false
+			path = vimruntime
+		}
+
+		c, err := os.ReadDir(path)
+		if err != nil {
+			fmt.Println("ERR reading dir:", path, err)
+		}
+
+		for _, entry := range c {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".vim") {
+				themes = append(themes, formatTheme(entry.Name(), custom))
+			}
+		}
+	}
+	
+	return themes
+}
+
+
+func formatTheme(filename string, custom bool) Theme {
+	return Theme{
+		Name:		strings.TrimSuffix(filename, ".vim"),
+		Color:		"\033[32m",
+		Custom:		custom,
 	}
 }
 

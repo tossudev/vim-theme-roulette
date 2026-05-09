@@ -35,8 +35,6 @@ type model struct {
 
 func main() {
 	FetchConfig()
-	//GetThemesLocal(true)
-	//GetThemesLocal(false)
 	ShuffleThemes()
 
     p := tea.NewProgram(initialModel())
