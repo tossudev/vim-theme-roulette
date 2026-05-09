@@ -3,6 +3,8 @@
 Roll away for a new theme!  
 **Work in progress**
 
+![Demo](demo.gif)
+
 # Todo
 
 ### Basic Functionality
