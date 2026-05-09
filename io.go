@@ -41,7 +41,6 @@ func FetchConfig() {
 	}
 	
 	Config = cfgFile
-	fmt.Println(Config)
 }
 
 
