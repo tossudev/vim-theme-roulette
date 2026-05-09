@@ -34,8 +34,9 @@ type model struct {
 
 
 func main() {
-	GetThemesLocal(true)
-	GetThemesLocal(false)
+	FetchConfig()
+	//GetThemesLocal(true)
+	//GetThemesLocal(false)
 	ShuffleThemes()
 
     p := tea.NewProgram(initialModel())
@@ -51,17 +52,17 @@ func initialModel() model {
 	themeIndices := []int{}
 	totalLength := 0
 
-	for _, theme := range(Themes) {
-		themeLength := len(theme.name) + 4
+	for _, theme := range(Config.Themes) {
+		themeLength := len(theme.Name) + 4
 		themeIndices = append(themeIndices, themeLength + totalLength)
 		totalLength += themeLength
-		text += fmt.Sprintf("| %s |", theme.name)
+		text += fmt.Sprintf("| %s |", theme.Name)
 	}
 
 	return model {
 		fullText:		text,
 		index:			0,
-		themes:			Themes,
+		themes:			Config.Themes,
 		themeIndices:	themeIndices,
 	}
 }
@@ -102,9 +103,9 @@ func (m model) View() tea.View {
 	width := m.width
 
 	if exit {
-		if CurrentTheme.name != "" {
+		if CurrentTheme.Name != "" {
 			ChangeTheme()
-			return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.name))
+			return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.Name))
 		}
 
 		return tea.NewView(fmt.Sprintf("Program exited by user"))
@@ -124,7 +125,7 @@ func (m model) View() tea.View {
 	s += "^\n"
 
 	if speed <= 0 {
-		s += fmt.Sprintf("You rolled %s!", CurrentTheme.name)
+		s += fmt.Sprintf("You rolled %s!", CurrentTheme.Name)
 	} else {
 		s += "Press space or enter to stop spinning."
 	}
@@ -144,7 +145,7 @@ func (m model) View() tea.View {
 
 func (m *model) UpdateRoulette() {
 	if speed <= 0 {
-		if CurrentTheme.name == "" {
+		if CurrentTheme.Name == "" {
 			m.GetTheme()
 		}
 

@@ -1,12 +1,11 @@
 # Vim theme roulette
 
-Roll away for a new theme!
-** Work in progress**
+Roll away for a new theme!  
+**Work in progress**
 
 # Todo
 
 ### Basic Functionality
-- Remove hardcoded paths
 - Color code themes
 - Vim / Nvim compatibility
 - UI

@@ -1,20 +1,19 @@
 package main
 
 import (
-	"strings"
+	//"strings"
 	"math/rand"
 )
 
 type Theme struct {
-	name string
-	color string
-	builtin bool
+	Name string
+	Color string
+	Builtin bool
 }
 
-var Themes []Theme
 var CurrentTheme Theme
 
-
+/*
 func AddTheme(filename string, builtin bool) {
 	theme := Theme{
 		name:		strings.TrimSuffix(filename, ".vim"),
@@ -24,12 +23,12 @@ func AddTheme(filename string, builtin bool) {
 
 	Themes = append(Themes, theme)
 }
-
+*/
 
 func ShuffleThemes() {
-	for i := range Themes {
+	for i := range Config.Themes {
 		j := rand.Intn(i + 1)
-		Themes[i], Themes[j] = Themes[j], Themes[i]
+		Config.Themes[i], Config.Themes[j] = Config.Themes[j], Config.Themes[i]
 
 	}
 }
