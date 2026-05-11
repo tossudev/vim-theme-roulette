@@ -128,6 +128,7 @@ func formatTheme(filename string, custom bool) Theme {
 		Name:		strings.TrimSuffix(filename, ".vim"),
 		Color:		"\033[32m",
 		Custom:		custom,
+		Favorite:	false,
 	}
 }
 

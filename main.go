@@ -17,21 +17,25 @@ const (
 )
 
 type model struct {
-	Header string
-	BlockLeft string
-	BlockRight string
+	Header 			string
+	BlockLeft 		string
+	BlockRight 		string
 
-	FullText string
-	DisplayText string
-	Index int
-	Themes []Theme
-	ThemeIndices []int
+	FullText 		string
+	DisplayText 	string
+	Index 			int
+	Themes 			[]Theme
+	ThemeIndices	[]int
+	ThemeChoices 	[]string
+	ThemesSelected 	map[int]struct{}
+	Cursor 			int
 
-	Width int
-	Height int
+	Width 			int
+	Height 			int
 }
 
 var (
+	start bool = true
 	exit bool = false
 	displaySize int = 50
 	speed int = 50
@@ -52,27 +56,18 @@ func main() {
 
 
 func initialModel() model {
-	text := ""
-	themeIndices := []int{}
-	totalLength := 0
-
-	for _, theme := range(Config.Themes) {
-		themeLength := len(theme.Name) + 4
-		themeIndices = append(themeIndices, themeLength + totalLength)
-		totalLength += themeLength
-		text += fmt.Sprintf("| %s |", theme.Name)
-	}
-
-	return model {
+	m := model {
 		Header:			ColorGreen + "\n☆ ★ ☆ ★  Vim Theme Roulette  ☆ ★ ☆ ★\n\n" + ColorReset,
 		BlockLeft:		"░▒▓ ",
 		BlockRight:		" ▓▒░",
 
-		FullText:		text,
-		Index:			0,
-		Themes:			Config.Themes,
-		ThemeIndices:	themeIndices,
+		ThemeChoices:	[]string{"All", "Favorites"},
+		ThemesSelected:	make(map[int]struct{}),
 	}
+
+	m.AddThemes()
+
+	return m
 }
 
 func (m model) Init() tea.Cmd {
@@ -91,7 +86,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "space", "enter":
-			stopSpin = true
+			if start {
+				start = false
+			} else {
+				stopSpin = true
+			}
 		}
 
 	case tickMsg:
@@ -108,7 +107,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 func (m model) View() tea.View {
-	width := m.Width
+	if start {
+		return startView(m)
+	}
 
 	if exit {
 		if CurrentTheme.Name != "" {
@@ -118,6 +119,33 @@ func (m model) View() tea.View {
 
 		return tea.NewView(fmt.Sprintf("Program exited by user"))
 	}
+
+	return rouletteView(m)
+}
+
+
+func startView(m model) tea.View {
+	width := m.Width
+
+	s := m.Header
+
+	s += "Press space to start!"
+
+	s += "\nPress q to exit."
+	s += "\n"
+
+	centered := lipgloss.NewStyle().
+		Width(width).
+		Align(lipgloss.Center).
+		Foreground(lipgloss.Color("5")).
+		Render(s)
+
+	return tea.NewView(centered)
+}
+
+
+func rouletteView(m model) tea.View {
+	width := m.Width
 
 	s := m.Header
 	s += m.BlockLeft + m.DisplayText + m.BlockRight
@@ -144,6 +172,32 @@ func (m model) View() tea.View {
 		Render(s)
 
 	return tea.NewView(centered)
+}
+
+
+func (m *model) AddThemes() {
+	text := ""
+	themeIndices := []int{}
+	totalLength := 0
+
+	for _, theme := range(Config.Themes) {
+		/*
+		if !theme.Favorite {
+			continue
+		}
+		*/
+
+		themeLength := len(theme.Name) + 4
+		themeIndices = append(themeIndices, themeLength + totalLength)
+		totalLength += themeLength
+		text += fmt.Sprintf("| %s |", theme.Name)
+
+		m.Themes = append(m.Themes, theme)
+	}
+	
+	m.FullText = text
+	m.Index = 0
+	m.ThemeIndices = themeIndices
 }
 
 
@@ -177,6 +231,7 @@ func (m *model) UpdateRoulette() {
 
 		if index >= len(m.FullText) - 1 {
 			wrap = i
+			continue
 		}
 
 		m.DisplayText += string(rune(m.FullText[index]))
