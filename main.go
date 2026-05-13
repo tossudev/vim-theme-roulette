@@ -27,7 +27,7 @@ type model struct {
 	Themes 			[]Theme
 	ThemeIndices	[]int
 	ThemeChoices 	[]string
-	ThemesSelected 	map[int]struct{}
+	ThemesSelected 	map[int]bool
 	Cursor 			int
 
 	Width 			int
@@ -61,12 +61,11 @@ func initialModel() model {
 		BlockLeft:		"░▒▓ ",
 		BlockRight:		" ▓▒░",
 
-		ThemeChoices:	[]string{"All", "Favorites"},
-		ThemesSelected:	make(map[int]struct{}),
+		ThemeChoices:	[]string{"All", "Favorites", "Start!"},
+		ThemesSelected:	make(map[int]bool),
 	}
 
-	m.AddThemes()
-
+	
 	return m
 }
 
@@ -87,14 +86,36 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "space", "enter":
 			if start {
-				start = false
+				if m.Cursor == 2 {
+					m.AddThemes()
+					start = false
+				} else {
+					if _, ok := m.ThemesSelected[m.Cursor]; ok {
+						delete(m.ThemesSelected, m.Cursor);
+					} else {
+						m.ThemesSelected[m.Cursor] = true
+					}
+				}
+
 			} else {
 				stopSpin = true
 			}
+
+		case "up", "k":
+			if m.Cursor > 0 {
+				m.Cursor--
+			}
+		
+		case "down", "j":
+            if m.Cursor < len(m.ThemeChoices)-1 {
+                m.Cursor++
+            }
 		}
 
 	case tickMsg:
-		m.UpdateRoulette()
+		if !start {
+			m.UpdateRoulette()
+		}
 		return m, tick
 
 	case tea.WindowSizeMsg:
@@ -129,7 +150,22 @@ func startView(m model) tea.View {
 
 	s := m.Header
 
-	s += "Press space to start!"
+	for i := range m.ThemeChoices {
+		checked := " "
+		if _, ok := m.ThemesSelected[i]; ok {
+			checked = "X"
+		}
+		
+		if m.Cursor == i {
+			s += "> "
+		}
+
+		if i == 2 {
+			s += fmt.Sprintf("Start!")
+		} else {
+			s += fmt.Sprintf("[%s] %s\n", checked,  m.ThemeChoices[i])
+		}
+	}
 
 	s += "\nPress q to exit."
 	s += "\n"
@@ -181,11 +217,9 @@ func (m *model) AddThemes() {
 	totalLength := 0
 
 	for _, theme := range(Config.Themes) {
-		/*
-		if !theme.Favorite {
+		if m.ThemesSelected[1] && !theme.Favorite {
 			continue
 		}
-		*/
 
 		themeLength := len(theme.Name) + 4
 		themeIndices = append(themeIndices, themeLength + totalLength)
@@ -231,7 +265,6 @@ func (m *model) UpdateRoulette() {
 
 		if index >= len(m.FullText) - 1 {
 			wrap = i
-			continue
 		}
 
 		m.DisplayText += string(rune(m.FullText[index]))

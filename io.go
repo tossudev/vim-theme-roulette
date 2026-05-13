@@ -73,7 +73,7 @@ func createConfig() {
 	cfg.Vimruntime = getRuntimePath()
 	cfg.Themes = getThemes(cfg.Vimruntime)
 
-	cfgJson, err := json.Marshal(cfg)
+	cfgJson, err := json.MarshalIndent(cfg, "\t", "\t")
 	if err != nil {
 		fmt.Println("JSON Marshal ERR:", err)
 	}
