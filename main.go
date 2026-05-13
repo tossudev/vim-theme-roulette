@@ -9,11 +9,17 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+type View int
+
 const (
 	ColorReset string = "\033[0m"
 	ColorGreen string = "\u001B[32m"
 	ColorYellow string = "\u001B[33m"
 	ColorWhite string = "\u001B[37m"
+
+	ViewStart View = iota
+	ViewRoulette
+	ViewExit
 )
 
 type model struct {
@@ -26,17 +32,16 @@ type model struct {
 	Index 			int
 	Themes 			[]Theme
 	ThemeIndices	[]int
-	ThemeChoices 	[]string
-	ThemesSelected 	map[int]bool
+	MenuChoices 	[]string
 	Cursor 			int
+	Selected		int
 
 	Width 			int
 	Height 			int
+	CurrentView		View
 }
 
 var (
-	start bool = true
-	exit bool = false
 	displaySize int = 50
 	speed int = 50
 	stopSpin = false
@@ -61,10 +66,9 @@ func initialModel() model {
 		BlockLeft:		"░▒▓ ",
 		BlockRight:		" ▓▒░",
 
-		ThemeChoices:	[]string{"All", "Favorites", "Start!"},
-		ThemesSelected:	make(map[int]bool),
+		MenuChoices:	[]string{"All", "Favorites", "Start!", "Quit"},
+		CurrentView:	ViewStart,
 	}
-
 	
 	return m
 }
@@ -81,20 +85,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		
 		case "ctrl+c", "q":
-			exit = true
+			m.CurrentView = ViewExit
 			return m, tea.Quit
 
 		case "space", "enter":
-			if start {
+			if m.CurrentView == ViewStart {
 				if m.Cursor == 2 {
 					m.AddThemes()
-					start = false
+					m.CurrentView = ViewRoulette
+
+				} else if m.Cursor == 3 {
+					m.CurrentView = ViewExit
+					return m, tea.Quit
+
 				} else {
-					if _, ok := m.ThemesSelected[m.Cursor]; ok {
-						delete(m.ThemesSelected, m.Cursor);
-					} else {
-						m.ThemesSelected[m.Cursor] = true
-					}
+					m.Selected = m.Cursor
 				}
 
 			} else {
@@ -107,13 +112,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		
 		case "down", "j":
-            if m.Cursor < len(m.ThemeChoices)-1 {
+            if m.Cursor < len(m.MenuChoices)-1 {
                 m.Cursor++
             }
 		}
 
 	case tickMsg:
-		if !start {
+		if m.CurrentView == ViewRoulette {
 			m.UpdateRoulette()
 		}
 		return m, tick
@@ -128,19 +133,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 func (m model) View() tea.View {
-	if start {
-		return startView(m)
+	switch m.CurrentView {
+		case ViewStart:
+			return startView(m)
+
+		case ViewExit:
+			if CurrentTheme.Name != "" {
+				ChangeTheme()
+				return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.Name))
+			}
+
+			return tea.NewView(fmt.Sprintf("Program exited by user"))
 	}
-
-	if exit {
-		if CurrentTheme.Name != "" {
-			ChangeTheme()
-			return tea.NewView(fmt.Sprintf("Changed Vim theme to: %s\n", CurrentTheme.Name))
-		}
-
-		return tea.NewView(fmt.Sprintf("Program exited by user"))
-	}
-
 	return rouletteView(m)
 }
 
@@ -149,31 +153,33 @@ func startView(m model) tea.View {
 	width := m.Width
 
 	s := m.Header
+	s += "\nSelect themes to include:\n"
 
-	for i := range m.ThemeChoices {
-		checked := " "
-		if _, ok := m.ThemesSelected[i]; ok {
-			checked = "X"
+	for i := range m.MenuChoices {
+		prefix := ""
+		suffix := ""
+
+		if i == m.Selected {
+			prefix = ColorGreen
+			suffix = " ✅"
+		}
+		
+		if i == 2 {
+			s += "\n"
 		}
 		
 		if m.Cursor == i {
-			s += "> "
+			prefix = ColorYellow
 		}
 
-		if i == 2 {
-			s += fmt.Sprintf("Start!")
-		} else {
-			s += fmt.Sprintf("[%s] %s\n", checked,  m.ThemeChoices[i])
-		}
+		s += fmt.Sprintf("%s%s%s%s\n", prefix, m.MenuChoices[i], suffix, ColorReset)
 	}
 
-	s += "\nPress q to exit."
 	s += "\n"
 
 	centered := lipgloss.NewStyle().
 		Width(width).
 		Align(lipgloss.Center).
-		Foreground(lipgloss.Color("5")).
 		Render(s)
 
 	return tea.NewView(centered)
@@ -204,7 +210,6 @@ func rouletteView(m model) tea.View {
 	centered := lipgloss.NewStyle().
 		Width(width).
 		Align(lipgloss.Center).
-		Foreground(lipgloss.Color("5")).
 		Render(s)
 
 	return tea.NewView(centered)
@@ -217,7 +222,7 @@ func (m *model) AddThemes() {
 	totalLength := 0
 
 	for _, theme := range(Config.Themes) {
-		if m.ThemesSelected[1] && !theme.Favorite {
+		if m.Selected == 1 && !theme.Favorite {
 			continue
 		}
 
@@ -265,6 +270,7 @@ func (m *model) UpdateRoulette() {
 
 		if index >= len(m.FullText) - 1 {
 			wrap = i
+			continue
 		}
 
 		m.DisplayText += string(rune(m.FullText[index]))
