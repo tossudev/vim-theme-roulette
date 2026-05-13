@@ -51,12 +51,19 @@ func ChangeTheme() {
 	}
 	
 	lines := strings.Split(string(contents), "\n")
+	themeLine := fmt.Sprintf("colorscheme %s", CurrentTheme.Name)
+	hasTheme := false
 
 	for i, line := range lines {
 		if strings.HasPrefix(line, "colorscheme ") {
-			lines[i] = fmt.Sprintf("colorscheme %s", CurrentTheme.Name)
+			lines[i] = themeLine
+			hasTheme = true
 			break
 		}
+	}
+
+	if !hasTheme {
+		lines = append(lines, themeLine)
 	}
 
 	output := strings.Join(lines, "\n")
