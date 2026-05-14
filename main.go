@@ -12,10 +12,11 @@ import (
 type View int
 
 const (
-	ColorReset string = "\033[0m"
-	ColorGreen string = "\u001B[32m"
-	ColorYellow string = "\u001B[33m"
-	ColorWhite string = "\u001B[37m"
+	ANSIColorReset string = "\033[0m"
+	ANSIColorGreen string = "\u001B[32m"
+	ANSIColorYellow string = "\u001B[33m"
+	ANSIColorWhite string = "\u001B[37m"
+	ANSIColorPastel string = "\u001B[210m"
 
 	ViewStart View = iota
 	ViewRoulette
@@ -24,6 +25,7 @@ const (
 
 type model struct {
 	Header 			string
+	HeaderHue		float64
 	BlockLeft 		string
 	BlockRight 		string
 
@@ -45,6 +47,7 @@ var (
 	displaySize int = 50
 	speed int = 50
 	stopSpin = false
+	headerColorSpeed float64 = 0.002
 )
 
 
@@ -62,7 +65,7 @@ func main() {
 
 func initialModel() model {
 	m := model {
-		Header:			ColorGreen + "\n☆ ★ ☆ ★  Vim Theme Roulette  ☆ ★ ☆ ★\n\n" + ColorReset,
+		Header:			"\n☆ ★ ☆ ★  Vim Theme Roulette  ☆ ★ ☆ ★\n\n",
 		BlockLeft:		"░▒▓ ",
 		BlockRight:		" ▓▒░",
 
@@ -118,6 +121,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tickMsg:
+		m.HeaderHue += headerColorSpeed
+		if m.HeaderHue > 1.0 {
+			m.HeaderHue = 0.0
+		}
+
 		if m.CurrentView == ViewRoulette {
 			m.UpdateRoulette()
 		}
@@ -152,7 +160,7 @@ func (m model) View() tea.View {
 func startView(m model) tea.View {
 	width := m.Width
 
-	s := m.Header
+	s := Rainbow(m.HeaderHue) + m.Header + ANSIColorReset
 	s += "\nSelect themes to include:\n"
 
 	for i := range m.MenuChoices {
@@ -160,7 +168,7 @@ func startView(m model) tea.View {
 		suffix := ""
 
 		if i == m.Selected {
-			prefix = ColorGreen
+			prefix = ANSIColorGreen
 			suffix = " ✅"
 		}
 		
@@ -169,10 +177,10 @@ func startView(m model) tea.View {
 		}
 		
 		if m.Cursor == i {
-			prefix = ColorYellow
+			prefix = ANSIColorYellow
 		}
 
-		s += fmt.Sprintf("%s%s%s%s\n", prefix, m.MenuChoices[i], suffix, ColorReset)
+		s += fmt.Sprintf("%s%s%s%s\n", prefix, m.MenuChoices[i], suffix, ANSIColorReset)
 	}
 
 	s += "\n"
@@ -261,7 +269,14 @@ func (m *model) UpdateRoulette() {
 		m.Index = 0
 	}
 
+	colors := []string{
+		"\033[38;2;255;255;255m",
+		"\033[38;2;255;0;0m",
+	}
+
 	for i := range(displaySize) {
+		color := colors[(m.Index + i)/3 % len(colors)]
+
 		index := m.Index + i
 
 		if wrap > 0 {
@@ -273,7 +288,7 @@ func (m *model) UpdateRoulette() {
 			continue
 		}
 
-		m.DisplayText += string(rune(m.FullText[index]))
+		m.DisplayText += color + string(rune(m.FullText[index])) + ANSIColorReset
 	}
 }
 

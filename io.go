@@ -133,7 +133,7 @@ func getThemes(vimruntime string) []Theme {
 func formatTheme(filename string, custom bool) Theme {
 	return Theme{
 		Name:		strings.TrimSuffix(filename, ".vim"),
-		Color:		"\033[32m",
+		Color:		"Red",
 		Custom:		custom,
 		Favorite:	false,
 	}
