@@ -4,6 +4,7 @@ import (
     "fmt"
 	"os"
 	"time"
+	"slices"
 
     tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -230,7 +231,7 @@ func (m *model) AddThemes() {
 	totalLength := 0
 
 	for _, theme := range(Config.Themes) {
-		if m.Selected == 1 && !theme.Favorite {
+		if m.Selected == 1 && !slices.Contains(Config.Favorites, theme.Name) {
 			continue
 		}
 

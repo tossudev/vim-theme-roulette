@@ -16,6 +16,7 @@ var (
 
 type ConfigFile struct {
 	Vimruntime string
+	Favorites []string
 	Themes []Theme
 }
 
@@ -135,7 +136,6 @@ func formatTheme(filename string, custom bool) Theme {
 		Name:		strings.TrimSuffix(filename, ".vim"),
 		Color:		"Red",
 		Custom:		custom,
-		Favorite:	false,
 	}
 }
 

@@ -9,7 +9,6 @@ type Theme struct {
 	Name string
 	Color string
 	Custom bool
-	Favorite bool
 }
 
 var CurrentTheme Theme
