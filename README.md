@@ -1,20 +1,14 @@
 # Vim theme roulette
 
-Roll away for a new theme!  
-**Work in progress**
+### Roll away for a new theme, lootbox style!  
 
 ![Demo](demo.gif)
 
-# Todo
+[!WARNING]
+Nvim is not supported yet.  
 
-### Basic Functionality
-- Color code themes
-- Vim / Nvim compatibility
-- UI
-	- Ask which themes to use
-	- End screen: Accept, roll again or quit
-
-### Extras
-- Themes from the internet
-- Number of themes
-- Grouped themes?
+# TODO
+- Nvim support
+- Wrap around bug
+- Query user before setting theme
+- Account for small amount of themes/favorites

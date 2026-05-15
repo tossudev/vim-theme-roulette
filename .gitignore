@@ -2,3 +2,6 @@
 *.json
 *.toml
 *.tape
+
+vim-theme-roulette
+builds/

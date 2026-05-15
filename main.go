@@ -186,13 +186,6 @@ func startView(m model) tea.View {
 				s += "\n"
 		}
 
-		if i == 0 {
-			
-		}
-
-		if i == 2 {
-		}
-		
 		if m.Cursor == i {
 			prefix = ANSIColorYellow
 		}
@@ -293,16 +286,6 @@ func (m *model) UpdateRoulette() {
 		m.Index = 0
 	}
 
-	/*
-	colors := []string{
-		"\033[38;5;10m",
-		"\033[38;5;11m",
-		"\033[38;5;12m",
-		"\033[38;5;13m",
-		"\033[38;5;14m",
-		"\033[38;5;15m",
-	}
-	*/
 	colorIndex := 0
 
 	for i := range(displaySize) {
