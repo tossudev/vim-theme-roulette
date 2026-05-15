@@ -10,7 +10,7 @@ import (
 
 var (
 	VimConfig string
-	ConfigPath string = "config.toml"
+	ConfigPath string
 	Config ConfigFile
 )
 
@@ -23,6 +23,7 @@ type ConfigFile struct {
 
 func FetchConfig() {
 	VimConfig = fmt.Sprintf("%s/.vimrc", os.Getenv("HOME"))
+	ConfigPath = fmt.Sprintf("%s/.config/vim-roulette-config.toml", os.Getenv("HOME"))
 	
 	_, err := os.Stat(ConfigPath)
 	if err != nil {
