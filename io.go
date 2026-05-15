@@ -38,6 +38,7 @@ func FetchConfig() {
 	cfgFile := ConfigFile{}
 	err3 := toml.Unmarshal(tomlData, &cfgFile)
 	if err3 != nil {
+		fmt.Println(fmt.Sprintf("%sYour %s file is malformed!%s", ANSIColorRed, ConfigPath, ANSIColorReset))
 		fmt.Println("TOML Unmarshal ERR:", err3)
 	}
 	

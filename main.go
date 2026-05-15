@@ -14,6 +14,7 @@ type View int
 
 const (
 	ANSIColorReset string = "\033[0m"
+	ANSIColorRed string = "\u001B[31m"
 	ANSIColorGreen string = "\u001B[32m"
 	ANSIColorYellow string = "\u001B[33m"
 	ANSIColorWhite string = "\u001B[37m"
@@ -80,6 +81,7 @@ func initialModel() model {
 
 		MenuChoices:	[]string{"All", "Favorites", "Start!", "Quit"},
 		CurrentView:	ViewStart,
+		Height:			20,
 	}
 	
 	return m
@@ -142,7 +144,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
-		m.Height = 15
 	}
 
 	return m, nil
@@ -167,9 +168,6 @@ func (m model) View() tea.View {
 
 
 func startView(m model) tea.View {
-	width := m.Width
-	height := m.Height
-
 	s := Rainbow(m.HeaderHue) + m.Header + ANSIColorReset
 	s += "\nSelect themes to include:\n"
 
@@ -182,8 +180,17 @@ func startView(m model) tea.View {
 			suffix = " ✅"
 		}
 		
+		// bruh
+		switch i {
+			case 2:
+				s += "\n"
+		}
+
+		if i == 0 {
+			
+		}
+
 		if i == 2 {
-			s += "\n"
 		}
 		
 		if m.Cursor == i {
@@ -196,8 +203,8 @@ func startView(m model) tea.View {
 	s += "\n"
 
 	centered := lipgloss.NewStyle().
-		Width(width).
-		Height(height).
+		Width(m.Width).
+		Height(m.Height).
 		Align(lipgloss.Center, lipgloss.Center).
 		BorderStyle(lipgloss.NormalBorder()).
 		Render(s)
@@ -207,16 +214,19 @@ func startView(m model) tea.View {
 
 
 func rouletteView(m model) tea.View {
-	width := m.Width
-
 	s := Rainbow(m.HeaderHue) + m.Header + ANSIColorReset
-	s += m.BlockLeft + m.DisplayText + m.BlockRight
-	s += "\n"
 	
 	for range(m.Width) {
 		s += " "
 	}
-	s += "^\n"
+	s += "|\n"
+
+	s += m.DisplayText
+	
+	for range(m.Width) {
+		s += " "
+	}
+	s += "|\n\n\n"
 
 	if speed <= 0 {
 		s += fmt.Sprintf("You rolled %s!", CurrentTheme.Name)
@@ -228,12 +238,12 @@ func rouletteView(m model) tea.View {
 	s += "\n"
 
 	centered := lipgloss.NewStyle().
-		Width(width).
-		Align(lipgloss.Center).
+		Width(m.Width).
+		Height(m.Height).
+		Align(lipgloss.Center, lipgloss.Center).
 		BorderStyle(lipgloss.NormalBorder()).
 		Render(s)
 	
-
 	return tea.NewView(centered)
 }
 
