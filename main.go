@@ -49,6 +49,14 @@ var (
 	speed int = 50
 	stopSpin = false
 	headerColorSpeed float64 = 0.002
+	rouletteColors []string = []string{
+		"\033[38;5;10m",
+		"\033[38;5;11m",
+		"\033[38;5;12m",
+		"\033[38;5;13m",
+		"\033[38;5;14m",
+		"\033[38;5;15m",
+	}
 )
 
 
@@ -198,7 +206,7 @@ func startView(m model) tea.View {
 func rouletteView(m model) tea.View {
 	width := m.Width
 
-	s := m.Header
+	s := Rainbow(m.HeaderHue) + m.Header + ANSIColorReset
 	s += m.BlockLeft + m.DisplayText + m.BlockRight
 	s += "\n"
 	
@@ -270,13 +278,26 @@ func (m *model) UpdateRoulette() {
 		m.Index = 0
 	}
 
+	/*
 	colors := []string{
-		"\033[38;2;255;255;255m",
-		"\033[38;2;255;0;0m",
+		"\033[38;5;10m",
+		"\033[38;5;11m",
+		"\033[38;5;12m",
+		"\033[38;5;13m",
+		"\033[38;5;14m",
+		"\033[38;5;15m",
 	}
+	*/
+	colorIndex := 0
 
 	for i := range(displaySize) {
-		color := colors[(m.Index + i)/3 % len(colors)]
+		for j, v := range(m.ThemeIndices) {
+			if v > m.Index + i {
+				colorIndex = j
+				break
+			}
+		}
+		color := rouletteColors[colorIndex % len(rouletteColors)]
 
 		index := m.Index + i
 
