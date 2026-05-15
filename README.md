@@ -1,11 +1,18 @@
-# Vim theme roulette
+# ♠️♥️ Vim Theme Roulette ♣️♦️
 
 ### Roll away for a new theme, lootbox style!  
 
 ![Demo](demo.gif)
 
-[!WARNING]
-Nvim is not supported yet.  
+# Usage
+> [!WARNING]  
+> Nvim is not supported yet.  
+
+## From source
+- Clone repo
+- cd into cloned repo
+- run ```go run .```
+- Follow instructions
 
 # TODO
 - Nvim support
