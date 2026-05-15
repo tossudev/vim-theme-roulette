@@ -1,6 +1,4 @@
 *.swp
-spinners/
-tutorial.go
 *.json
+*.toml
 *.tape
-favs.txt

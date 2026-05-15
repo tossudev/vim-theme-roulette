@@ -5,12 +5,12 @@ import (
 	"os/exec"
 	"fmt"
 	"strings"
-	"encoding/json"
+	"github.com/pelletier/go-toml/v2"
 )
 
 var (
 	VimConfig string
-	ConfigPath string = "config.json"
+	ConfigPath string = "config.toml"
 	Config ConfigFile
 )
 
@@ -30,15 +30,15 @@ func FetchConfig() {
 		return
 	}
 
-	jsonData, err2 := os.ReadFile(ConfigPath)
+	tomlData, err2 := os.ReadFile(ConfigPath)
 	if err2 != nil {
 		fmt.Println("ERR reading file:", ConfigPath, err)
 	}
 	
 	cfgFile := ConfigFile{}
-	err3 := json.Unmarshal(jsonData, &cfgFile)
+	err3 := toml.Unmarshal(tomlData, &cfgFile)
 	if err3 != nil {
-		fmt.Println("JSON Unmarshal ERR:", err3)
+		fmt.Println("TOML Unmarshal ERR:", err3)
 	}
 	
 	Config = cfgFile
@@ -81,12 +81,12 @@ func createConfig() {
 	cfg.Vimruntime = getRuntimePath()
 	cfg.Themes = getThemes(cfg.Vimruntime)
 
-	cfgJson, err := json.MarshalIndent(cfg, "\t", "\t")
+	cfgToml, err := toml.Marshal(cfg)
 	if err != nil {
-		fmt.Println("JSON Marshal ERR:", err)
+		fmt.Println("TOML Marshal ERR:", err)
 	}
 	
-	err2 := os.WriteFile(ConfigPath, []byte(cfgJson), 0644)
+	err2 := os.WriteFile(ConfigPath, []byte(cfgToml), 0644)
 	if err2 != nil {
 		fmt.Println("ERR writing to file:", ConfigPath, err)
 	}

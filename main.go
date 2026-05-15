@@ -142,7 +142,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
-		m.Height = msg.Height
+		m.Height = 15
 	}
 
 	return m, nil
@@ -168,6 +168,7 @@ func (m model) View() tea.View {
 
 func startView(m model) tea.View {
 	width := m.Width
+	height := m.Height
 
 	s := Rainbow(m.HeaderHue) + m.Header + ANSIColorReset
 	s += "\nSelect themes to include:\n"
@@ -196,7 +197,9 @@ func startView(m model) tea.View {
 
 	centered := lipgloss.NewStyle().
 		Width(width).
-		Align(lipgloss.Center).
+		Height(height).
+		Align(lipgloss.Center, lipgloss.Center).
+		BorderStyle(lipgloss.NormalBorder()).
 		Render(s)
 
 	return tea.NewView(centered)
@@ -227,7 +230,9 @@ func rouletteView(m model) tea.View {
 	centered := lipgloss.NewStyle().
 		Width(width).
 		Align(lipgloss.Center).
+		BorderStyle(lipgloss.NormalBorder()).
 		Render(s)
+	
 
 	return tea.NewView(centered)
 }

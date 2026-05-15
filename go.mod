@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	charm.land/bubbletea/v2 v2.0.5
 	charm.land/lipgloss/v2 v2.0.3
+	github.com/pelletier/go-toml/v2 v2.3.1
 )
 
 require (
