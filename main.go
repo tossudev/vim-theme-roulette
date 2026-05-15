@@ -18,7 +18,7 @@ const (
 	ANSIColorGreen string = "\u001B[32m"
 	ANSIColorYellow string = "\u001B[33m"
 	ANSIColorWhite string = "\u001B[37m"
-	ANSIColorPastel string = "\u001B[210m"
+	ANSIColorGrey string = "\u001B[38;5;241m"
 
 	ViewStart View = iota
 	ViewRoulette
@@ -75,11 +75,11 @@ func main() {
 
 func initialModel() model {
 	m := model {
-		Header:			"\n☆ ★ ☆ ★  Vim Theme Roulette  ☆ ★ ☆ ★\n\n",
-		BlockLeft:		"░▒▓ ",
-		BlockRight:		" ▓▒░",
+		Header:			"\n✩₊˚.⋆☾⋆⁺₊✧ Vim Theme Roulette ✩₊˚.⋆☾⋆⁺₊✧\n",
+		BlockLeft:		"",
+		BlockRight:		"",
 
-		MenuChoices:	[]string{"All", "Favorites", "Start!", "Quit"},
+		MenuChoices:	[]string{"All", "Favorites", "Start", "Quit"},
 		CurrentView:	ViewStart,
 		Height:			20,
 	}
@@ -169,15 +169,15 @@ func (m model) View() tea.View {
 
 func startView(m model) tea.View {
 	s := Rainbow(m.HeaderHue) + m.Header + ANSIColorReset
-	s += "\nSelect themes to include:\n"
+	s += "\nSelected themes:\n"
 
 	for i := range m.MenuChoices {
 		prefix := ""
 		suffix := ""
 
 		if i == m.Selected {
-			prefix = ANSIColorGreen
-			suffix = " ✅"
+			prefix = ANSIColorGreen + "→ "
+			suffix = " ←"
 		}
 		
 		// bruh
@@ -188,12 +188,15 @@ func startView(m model) tea.View {
 
 		if m.Cursor == i {
 			prefix = ANSIColorYellow
+			if i == m.Selected {
+				prefix += "→ "
+			}
 		}
 
 		s += fmt.Sprintf("%s%s%s%s\n", prefix, m.MenuChoices[i], suffix, ANSIColorReset)
 	}
 
-	s += "\n"
+	s += ANSIColorGrey + "\n🠅/🠇 to move, space/enter to select\n" + ANSIColorReset
 
 	centered := lipgloss.NewStyle().
 		Width(m.Width).
@@ -214,12 +217,12 @@ func rouletteView(m model) tea.View {
 	}
 	s += "|\n"
 
-	s += m.DisplayText
+	s += m.BlockLeft + m.DisplayText + m.BlockRight
 	
 	for range(m.Width) {
 		s += " "
 	}
-	s += "|\n\n\n"
+	s += "|\n\n"
 
 	if speed <= 0 {
 		s += fmt.Sprintf("You rolled %s!", CurrentTheme.Name)
@@ -276,7 +279,6 @@ func (m *model) UpdateRoulette() {
 
 	m.Index += speed / 10
 	m.DisplayText = ""
-	wrap := 0
 
 	if stopSpin {
 		speed -= 1
@@ -287,10 +289,11 @@ func (m *model) UpdateRoulette() {
 	}
 
 	colorIndex := 0
+	wrap := 0
 
 	for i := range(displaySize) {
 		for j, v := range(m.ThemeIndices) {
-			if v > m.Index + i {
+			if v > (m.Index + i) % len(m.FullText) {
 				colorIndex = j
 				break
 			}
@@ -304,7 +307,7 @@ func (m *model) UpdateRoulette() {
 		}
 
 		if index >= len(m.FullText) - 1 {
-			wrap = i
+			wrap = i + 1 // ???!!??
 			continue
 		}
 
@@ -314,7 +317,7 @@ func (m *model) UpdateRoulette() {
 
 func (m *model) GetTheme() {
 	for i, v := range(m.ThemeIndices) {
-		if v > m.Index + displaySize/2 {
+		if v > (m.Index + displaySize/2) % len(m.FullText) {
 			CurrentTheme = m.Themes[i]
 			return
 		}
